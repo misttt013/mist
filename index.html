@@ -39,6 +39,7 @@
     var f = document.createElement('iframe');
     f.src = APP + '?key=' + encodeURIComponent(key);
     f.title = 'Mist';
+    f.setAttribute('credentialless', '');
     document.body.appendChild(f);
   } else {
     document.body.innerHTML = '<div class="gate"><form id="g"><img src="' + document.querySelector('link[rel=apple-touch-icon]').href + '" alt="">' +
