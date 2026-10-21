@@ -7,7 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mist">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="sbs">
+<script>
+  /* Full screen: the app draws under the status bar. In light mode keep the normal status bar so the clock stays readable. */
+  try { if (!matchMedia('(prefers-color-scheme: dark)').matches) document.getElementById('sbs').setAttribute('content', 'default'); } catch (e) {}
+</script>
 <meta name="theme-color" content="#f3f3f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex">
@@ -16,8 +20,9 @@
 <style>
   html, body { margin: 0; height: 100%; background: #f3f3f1; }
   @media (prefers-color-scheme: dark) { html, body { background: #0f0f0e; } }
-  body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); box-sizing: border-box; font: 16px -apple-system, system-ui, sans-serif; }
-  iframe { display: block; width: 100%; height: 100%; border: 0; }
+  body { font: 16px -apple-system, system-ui, sans-serif; }
+  iframe { position: fixed; inset: 0; display: block; width: 100%; height: 100%; border: 0; }
+  .probe { position: fixed; left: 0; top: 0; width: 0; visibility: hidden; pointer-events: none; }
   .gate { position: fixed; inset: 0; background: #c6ff00; display: grid; place-items: center; padding: 24px; }
   .gate form { width: 100%; max-width: 320px; text-align: center; }
   .gate img { width: 96px; height: 96px; border-radius: 22px; }
@@ -36,8 +41,18 @@
   var key = m ? decodeURIComponent(m[1]) : get();
   if (m) put(key);
   if (key) {
+    /* Measure the status bar and home bar so Mist can pad its own header and tab bar (env() is 0 inside the iframe). */
+    function inset(side) {
+      var d = document.createElement('div');
+      d.className = 'probe';
+      d.style.height = 'env(safe-area-inset-' + side + ', 0px)';
+      document.body.appendChild(d);
+      var h = Math.round(d.getBoundingClientRect().height) || 0;
+      document.body.removeChild(d);
+      return h;
+    }
     var f = document.createElement('iframe');
-    f.src = APP + '?key=' + encodeURIComponent(key);
+    f.src = APP + '?key=' + encodeURIComponent(key) + '&sat=' + inset('top') + '&sab=' + inset('bottom');
     f.title = 'Mist';
     f.setAttribute('credentialless', '');
     document.body.appendChild(f);
