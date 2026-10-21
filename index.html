@@ -22,7 +22,7 @@
   @media (prefers-color-scheme: dark) { html, body { background: #0f0f0e; } }
   body { font: 16px -apple-system, system-ui, sans-serif; }
   iframe { position: fixed; inset: 0; display: block; width: 100%; height: 100%; border: 0; }
-  .probe { position: fixed; left: 0; top: 0; width: 0; visibility: hidden; pointer-events: none; }
+  .probe { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; pointer-events: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
   .gate { position: fixed; inset: 0; background: #c6ff00; display: grid; place-items: center; padding: 24px; }
   .gate form { width: 100%; max-width: 320px; text-align: center; }
   .gate img { width: 96px; height: 96px; border-radius: 22px; }
@@ -41,21 +41,33 @@
   var key = m ? decodeURIComponent(m[1]) : get();
   if (m) put(key);
   if (key) {
-    /* Measure the status bar and home bar so Mist can pad its own header and tab bar (env() is 0 inside the iframe). */
-    function inset(side) {
+    /* Measure the status bar and home bar so Mist can pad its own header and tab bar (env() is 0 inside the iframe).
+       iOS can report 0 before the page is laid out, so wait for load and retry for half a second. */
+    var standalone = navigator.standalone === true || !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    function measure() {
       var d = document.createElement('div');
       d.className = 'probe';
-      d.style.height = 'env(safe-area-inset-' + side + ', 0px)';
       document.body.appendChild(d);
-      var h = Math.round(d.getBoundingClientRect().height) || 0;
+      var cs = getComputedStyle(d);
+      var r = [Math.round(parseFloat(cs.paddingTop) || 0), Math.round(parseFloat(cs.paddingBottom) || 0)];
       document.body.removeChild(d);
-      return h;
+      return r;
     }
-    var f = document.createElement('iframe');
-    f.src = APP + '?key=' + encodeURIComponent(key) + '&sat=' + inset('top') + '&sab=' + inset('bottom');
-    f.title = 'Mist';
-    f.setAttribute('credentialless', '');
-    document.body.appendChild(f);
+    var first = measure(), tries = 0;
+    function start() {
+      var m = measure(), est = 0;
+      if (standalone && !m[0] && !m[1] && tries < 10) { tries++; setTimeout(start, 50); return; }
+      /* Still 0 while the app is drawn under the status bar: use the usual iPhone sizes */
+      if (standalone && !m[0] && window.innerHeight >= screen.height - 2) { m[0] = screen.height >= 852 ? 59 : 47; est = 1; }
+      if (standalone && !m[1] && screen.height >= 812) { m[1] = 34; est = 1; }
+      var f = document.createElement('iframe');
+      f.src = APP + '?key=' + encodeURIComponent(key) + '&sat=' + m[0] + '&sab=' + m[1] +
+        '&dbg=1&t0=' + first[0] + '&b0=' + first[1] + '&est=' + est + '&sa=' + (standalone ? 1 : 0) + '&ih=' + window.innerHeight + '&sh=' + screen.height + '&tr=' + tries;
+      f.title = 'Mist';
+      f.setAttribute('credentialless', '');
+      document.body.appendChild(f);
+    }
+    if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
   } else {
     document.body.innerHTML = '<div class="gate"><form id="g"><img src="' + document.querySelector('link[rel=apple-touch-icon]').href + '" alt="">' +
       '<h1>Mist</h1><p>Enter your key once to unlock.</p><input id="k" autocomplete="off" autocapitalize="off" placeholder="Your key"><button>Open</button></form></div>';
