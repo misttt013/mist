@@ -20,8 +20,8 @@
 <style>
   /* On some iOS versions a Home Screen web app loses a strip at the bottom that the page can't draw on; iOS fills it with
      this background, so it matches Mist's tab bar and reads as part of it. */
-  html, body { margin: 0; height: 100%; background: #fbfbfa; }
-  @media (prefers-color-scheme: dark) { html, body { background: #181817; } }
+  html, body { margin: 0; height: 100%; background: #fcfcfb; }
+  @media (prefers-color-scheme: dark) { html, body { background: #1a1a19; } }
   body { font: 16px -apple-system, system-ui, sans-serif; }
   iframe { position: fixed; inset: 0; display: block; width: 100%; height: 100%; border: 0; }
   .probe { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; pointer-events: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -42,7 +42,62 @@
   var m = location.hash.match(/k=([^&]+)/);
   var key = m ? decodeURIComponent(m[1]) : get();
   if (m) put(key);
-  if (key) {
+  if (key) run(); else gate();
+
+  /* Mist runs straight on this page: its HTML comes from the script (?raw=1) and its server calls go to the script
+     as plain web requests. Without Google's frames, taps land where the finger is and the iPhone's safe areas apply. */
+  function post(name, args) {
+    return fetch(APP, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ rpc: name, args: args }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j || !j.ok) throw new Error((j && j.error) || 'Something went wrong'); return j.value; });
+  }
+  /* Stands in for google.script.run inside the app; the first getAll was already started while the app downloaded */
+  function shim(APP) {
+    try { if (!matchMedia('(prefers-color-scheme: dark)').matches) { var sb = document.getElementById('sbs'); if (sb) sb.setAttribute('content', 'default'); } } catch (e) {}
+    var first = window.__mistFirst || {};
+    var send = window.__mistPost || function (name, args) {
+      return fetch(APP, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ rpc: name, args: args }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (!j || !j.ok) throw new Error((j && j.error) || 'Something went wrong'); return j.value; });
+    };
+    function runner(ok, fail) {
+      return new Proxy({}, { get: function (_, p) {
+        if (p === 'withSuccessHandler') return function (h) { return runner(h, fail); };
+        if (p === 'withFailureHandler') return function (h) { return runner(ok, h); };
+        if (p === 'withUserObject') return function () { return runner(ok, fail); };
+        return function () {
+          var args = [].slice.call(arguments), name = String(p), job;
+          if (first[name] && args.length === 1) { job = first[name]; delete first[name]; } else job = send(name, args);
+          job.then(function (v) { if (ok) ok(v); }, function (e) { if (fail) fail(e); });
+        };
+      } });
+    }
+    window.google = { script: { run: runner(null, null), url: { getLocation: function (cb) { cb({ parameter: {}, parameters: {}, hash: '' }); } }, host: { close: function () {}, setHeight: function () {}, setWidth: function () {} } } };
+  }
+  function run() {
+    var done = false;
+    window.__mistPost = post;
+    window.__mistFirst = { getAll: post('getAll', [key]) };
+    window.__mistFirst.getAll.catch(function () {});
+    var fallback = setTimeout(function () { if (!done) { done = true; framed(); } }, 15000);
+    fetch(APP + '?raw=1&key=' + encodeURIComponent(key))
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        if (done) return;
+        if (html.indexOf('const KEY') < 0) throw new Error('Not the app');
+        done = true; clearTimeout(fallback);
+        /* keep this page's home-screen tags (icon, title, status bar), so Add to Home Screen still works from the app */
+        var keep = [].slice.call(document.head.querySelectorAll('meta, link, title')).filter(function (el) {
+          return el.getAttribute('name') !== 'viewport' && !el.hasAttribute('charset');
+        }).map(function (el) { return el.outerHTML; }).join('');
+        html = html.replace('<head>', '<head>' + keep + '<script>(' + shim + ')(' + JSON.stringify(APP) + ');<\/script>');
+        document.open(); document.write(html); document.close();
+      })
+      .catch(function () { if (!done) { done = true; clearTimeout(fallback); framed(); } });
+  }
+
+  /* Fallback, the old way: Mist inside Google's frames */
+  function framed() {
     /* Measure the status bar and home bar so Mist can pad its own header and tab bar (env() is 0 inside the iframe).
        iOS can report 0 before the page is laid out, so wait for load and retry for half a second. */
     var standalone = navigator.standalone === true || !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
@@ -72,7 +127,9 @@
       document.body.appendChild(f);
     }
     if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
-  } else {
+  }
+
+  function gate() {
     document.body.innerHTML = '<div class="gate"><form id="g"><img src="' + document.querySelector('link[rel=apple-touch-icon]').href + '" alt="">' +
       '<h1>Mist</h1><p>Enter your key once to unlock.</p><input id="k" autocomplete="off" autocapitalize="off" placeholder="Your key"><button>Open</button></form></div>';
     document.getElementById('g').onsubmit = function (e) { e.preventDefault(); var v = document.getElementById('k').value.trim(); if (v) { put(v); location.replace(location.pathname + '#k=' + encodeURIComponent(v)); location.reload(); } };
