@@ -7,26 +7,163 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mist">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f0f0e">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="sbs">
+<script>
+  /* Full screen: the app draws under the status bar. In light mode keep the normal status bar so the clock stays readable. */
+  try { if (!matchMedia('(prefers-color-scheme: dark)').matches) document.getElementById('sbs').setAttribute('content', 'default'); } catch (e) {}
+</script>
+<meta name="theme-color" content="#f3f3f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 <link rel="icon" href="data:image/png;base64,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">
 <style>
-  html, body { margin: 0; height: 100%; background: #0f0f0e; color: #c6ff00; font: 17px -apple-system, system-ui, sans-serif; display: grid; place-items: center; text-align: center; padding: 24px; }
-  a { color: #c6ff00; }
+  /* On some iOS versions a Home Screen web app loses a strip at the bottom that the page can't draw on; iOS fills it with
+     this background, so it matches Mist's tab bar and reads as part of it. */
+  html, body { margin: 0; height: 100%; background: #fcfcfb; }
+  @media (prefers-color-scheme: dark) { html, body { background: #1a1a19; } }
+  body { font: 16px -apple-system, system-ui, sans-serif; }
+  .gate { position: fixed; inset: 0; background: #c6ff00; display: grid; place-items: center; padding: 24px; overflow: auto; }
+  .gate form, .gate .box { width: 100%; max-width: 340px; text-align: center; }
+  .gate img { width: 96px; height: 96px; border-radius: 22px; }
+  .gate h1 { margin: 16px 0 6px; font-size: 28px; color: #111; }
+  .gate p { margin: 0 0 14px; color: #333; line-height: 1.4; }
+  .gate a { color: #111; font-weight: 700; }
+  .gate input { width: 100%; box-sizing: border-box; padding: 14px; border-radius: 14px; border: 2px solid #111; font: 700 22px ui-monospace, Menlo, monospace; letter-spacing: 3px; text-align: center; text-transform: uppercase; background: #fff; color: #111; }
+  .gate button { width: 100%; margin-top: 10px; padding: 14px; border-radius: 14px; border: 0; background: #111; color: #c6ff00; font-size: 17px; font-weight: 700; }
+  .gate button:disabled { opacity: .6; }
+  .gate .err { min-height: 1.4em; margin: 12px 0 0; color: #7a0000; font-weight: 600; }
+  .gate .steps { text-align: left; margin: 0 0 16px; padding-left: 22px; color: #333; line-height: 1.45; }
 </style>
 </head>
 <body>
-<p>Opening Mist…<br><a id="go" href="https://script.google.com/macros/s/AKfycbxJIYeWdT81BLASy43NE2pJT16FIXjJyswVVbB36AkSmkoGAgje_qk4Xk_6-c_OShA0/exec">Tap to open</a></p>
 <script>
-  /* Mist is now a private, owner-only Google Apps Script web app. This page holds no key and simply opens it;
-     Google asks you to sign in as the owner. The old access key has been retired, so it is cleared here. */
+(function () {
+  /* Everything here stays inside this function: Mist's own code is written into this same page later, and its
+     names must not clash with the launcher's. */
+  /* Mist on the Home Screen. Mist's code comes from the script (?raw=1, no data in it) and runs straight on this page,
+     full screen. Every server call carries this phone's device token, which it gets once by pairing with a one-time
+     code. Nothing secret is ever put in a link. */
   var APP = 'https://script.google.com/macros/s/AKfycbxJIYeWdT81BLASy43NE2pJT16FIXjJyswVVbB36AkSmkoGAgje_qk4Xk_6-c_OShA0/exec';
+  var PAIR_PAGE = 'https://script.google.com/macros/s/AKfycbyCh4C_3IzApqNi9ZlywtS1qiB5YelyjvcIq4WYNlk/dev?pair=1';
+  var TOKEN_KEY = 'mistDevice';
+  function token() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
+  function saveToken(t) { try { localStorage.setItem(TOKEN_KEY, t); return localStorage.getItem(TOKEN_KEY) === t; } catch (e) { return false; } }
+  function forget() { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} }
+  /* The old shared key is retired: remove it from this phone and from the address */
   try { localStorage.removeItem('mistKey'); } catch (e) {}
-  try { if (location.hash) history.replaceState(null, '', location.pathname); } catch (e) {}
-  try { document.getElementById('go').href = APP; } catch (e) {}
-  location.replace(APP);
+  if (/k=/.test(location.hash)) { try { history.replaceState(null, '', location.pathname); } catch (e) { location.hash = ''; } }
+
+  var unpairedNote = /unpaired/.test(location.hash);
+  if (unpairedNote) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  if (token()) run(); else pairScreen(unpairedNote ? 'This phone is no longer paired. Get a new code to pair it again.' : '');
+
+  function send(body) {
+    return fetch(APP, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), credentials: 'omit' })
+      .then(function (r) { return r.json(); });
+  }
+  function post(name, args) {
+    args = [].slice.call(args || []);
+    args[0] = token();
+    return send({ rpc: name, args: args }).then(function (j) {
+      if (j && j.unpaired) { forget(); location.replace(location.pathname + '#unpaired'); location.reload(); }
+      if (!j || !j.ok) throw new Error((j && j.error) || 'Something went wrong');
+      return j.value;
+    });
+  }
+  /* Stands in for google.script.run inside the app. The app passes its key first; it is swapped for the device token.
+     The first getAll was already started while the app downloaded. */
+  function shim(APP) {
+    try { if (!matchMedia('(prefers-color-scheme: dark)').matches) { var sb = document.getElementById('sbs'); if (sb) sb.setAttribute('content', 'default'); } } catch (e) {}
+    var first = window.__mistFirst || {};
+    var send = window.__mistPost || function (name, args) {
+      var t = ''; try { t = localStorage.getItem('mistDevice') || ''; } catch (e) {}
+      args = [].slice.call(args || []); args[0] = t;
+      return fetch(APP, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ rpc: name, args: args }), credentials: 'omit' })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.unpaired) { try { localStorage.removeItem('mistDevice'); } catch (e) {} location.replace(location.pathname + '#unpaired'); location.reload(); }
+          if (!j || !j.ok) throw new Error((j && j.error) || 'Something went wrong'); return j.value;
+        });
+    };
+    function runner(ok, fail) {
+      return new Proxy({}, { get: function (_, p) {
+        if (p === 'withSuccessHandler') return function (h) { return runner(h, fail); };
+        if (p === 'withFailureHandler') return function (h) { return runner(ok, h); };
+        if (p === 'withUserObject') return function () { return runner(ok, fail); };
+        return function () {
+          var args = [].slice.call(arguments), name = String(p), job;
+          if (first[name] && args.length === 1) { job = first[name]; delete first[name]; } else job = send(name, args);
+          job.then(function (v) { if (ok) ok(v); }, function (e) { if (fail) fail(e); });
+        };
+      } });
+    }
+    window.google = { script: { run: runner(null, null), url: { getLocation: function (cb) { cb({ parameter: {}, parameters: {}, hash: '' }); } }, host: { close: function () {}, setHeight: function () {}, setWidth: function () {} } } };
+  }
+
+  function run() {
+    var done = false;
+    window.__mistPost = post;
+    window.__mistFirst = { getAll: post('getAll', ['']) };
+    window.__mistFirst.getAll.catch(function () {});
+    var slow = setTimeout(function () { if (!done) { done = true; offline(); } }, 25000);
+    fetch(APP + '?raw=1', { credentials: 'omit' })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        if (done) return;
+        if (html.indexOf('const KEY') < 0) throw new Error('Not the app');
+        done = true; clearTimeout(slow);
+        /* keep this page's home-screen tags (icon, title, status bar), so Add to Home Screen still works from the app */
+        var keep = [].slice.call(document.head.querySelectorAll('meta, link, title')).filter(function (el) {
+          return el.getAttribute('name') !== 'viewport' && !el.hasAttribute('charset');
+        }).map(function (el) { return el.outerHTML; }).join('');
+        html = html.replace('<head>', '<head>' + keep + '<script>(' + shim + ')(' + JSON.stringify(APP) + ');<\/script>');
+        document.open(); document.write(html); document.close();
+      })
+      .catch(function () { if (!done) { done = true; clearTimeout(slow); offline(); } });
+  }
+
+  function icon() { return document.querySelector('link[rel=apple-touch-icon]').href; }
+  function offline() {
+    document.body.innerHTML = '<div class="gate"><div class="box"><img alt=""><h1>Mist</h1>' +
+      '<p>Mist can’t be reached right now. Check your internet connection and try again.</p><button id="again">Try again</button></div></div>';
+    document.querySelector('.gate img').src = icon();
+    document.getElementById('again').onclick = function () { location.reload(); };
+  }
+
+  function deviceName() {
+    var u = navigator.userAgent || '';
+    var kind = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android phone' : /Macintosh/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows PC' : 'Browser';
+    var d = new Date();
+    return kind + ' (' + d.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + ')';
+  }
+
+  function pairScreen(note) {
+    document.body.innerHTML = '<div class="gate"><form id="g" autocomplete="off"><img alt=""><h1>Mist</h1>' +
+      '<p>Pair this phone once to open Mist.</p>' +
+      '<ol class="steps"><li>Open the <a id="pp" target="_blank" rel="noopener">pairing page</a>, signed in to Google as Mist’s owner.</li>' +
+      '<li>Enter the 8-character code it shows.</li></ol>' +
+      '<input id="c" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="9" placeholder="ABCD 2345" aria-label="Pairing code">' +
+      '<button id="go">Pair this phone</button><p class="err" id="err" role="alert"></p></form></div>';
+    document.querySelector('.gate img').src = icon();
+    document.getElementById('pp').href = PAIR_PAGE;
+    var err = document.getElementById('err'), go = document.getElementById('go');
+    err.textContent = note || '';
+    document.getElementById('g').onsubmit = function (e) {
+      e.preventDefault();
+      var code = document.getElementById('c').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code.length !== 8) { err.textContent = 'The code has 8 letters and numbers.'; return; }
+      go.disabled = true; err.textContent = '';
+      send({ pair: code, device: deviceName() })
+        .then(function (j) {
+          if (!j || !j.ok || !j.token) throw new Error((j && j.error) || 'That code didn’t work. Get a new one.');
+          if (!saveToken(j.token)) throw new Error('This phone couldn’t save the pairing. If Private Browsing is on, turn it off and try again.');
+          run();
+        })
+        .catch(function (x) { go.disabled = false; err.textContent = (x && x.message && !/fetch|network|load/i.test(x.message)) ? x.message : 'Mist can’t be reached right now. Check your connection and try again.'; });
+    };
+  }
+})();
 </script>
 </body>
 </html>
