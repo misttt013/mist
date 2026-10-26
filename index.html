@@ -104,8 +104,18 @@
   function run() {
     var done = false;
     window.__mistPost = post;
+    window.__mistApp = APP;
     window.__mistFirst = { getAll: post('getAll', ['']) };
     window.__mistFirst.getAll.catch(function () {});
+    /* Start at once from the copy of Mist's code kept on this phone (code only, no data), as long as the last start
+       from it worked: Mist clears the 'mistShellBoot' mark when it starts, and fetches a fresh copy for next time. */
+    var kept = '', failed = false;
+    try { kept = localStorage.getItem('mistShell') || ''; failed = !!localStorage.getItem('mistShellBoot'); } catch (e) {}
+    if (failed) { kept = ''; try { localStorage.removeItem('mistShell'); localStorage.removeItem('mistShellBoot'); } catch (e) {} }
+    if (kept.indexOf('const KEY') > -1) {
+      try { localStorage.setItem('mistShellBoot', String(Date.now())); } catch (e) {}
+      done = true; show(kept); return;
+    }
     var slow = setTimeout(function () { if (!done) { done = true; offline(); } }, 25000);
     fetch(APP + '?raw=1', { credentials: 'omit' })
       .then(function (r) { return r.text(); })
@@ -113,14 +123,18 @@
         if (done) return;
         if (html.indexOf('const KEY') < 0) throw new Error('Not the app');
         done = true; clearTimeout(slow);
-        /* keep this page's home-screen tags (icon, title, status bar), so Add to Home Screen still works from the app */
-        var keep = [].slice.call(document.head.querySelectorAll('meta, link, title')).filter(function (el) {
-          return el.getAttribute('name') !== 'viewport' && !el.hasAttribute('charset');
-        }).map(function (el) { return el.outerHTML; }).join('');
-        html = html.replace('<head>', '<head>' + keep + '<script>(' + shim + ')(' + JSON.stringify(APP) + ');<\/script>');
-        document.open(); document.write(html); document.close();
+        try { localStorage.setItem('mistShell', html); } catch (e) {}
+        show(html);
       })
       .catch(function () { if (!done) { done = true; clearTimeout(slow); offline(); } });
+  }
+  function show(html) {
+    /* keep this page's home-screen tags (icon, title, status bar), so Add to Home Screen still works from the app */
+    var keep = [].slice.call(document.head.querySelectorAll('meta, link, title')).filter(function (el) {
+      return el.getAttribute('name') !== 'viewport' && !el.hasAttribute('charset');
+    }).map(function (el) { return el.outerHTML; }).join('');
+    html = html.replace('<head>', '<head>' + keep + '<script>(' + shim + ')(' + JSON.stringify(APP) + ');<\/script>');
+    document.open(); document.write(html); document.close();
   }
 
   function icon() { return document.querySelector('link[rel=apple-touch-icon]').href; }
